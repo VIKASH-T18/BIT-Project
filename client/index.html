@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO -->
+    <title>BIT Hostel Portal — Smart Hostel Management System</title>
+    <meta name="description" content="BIT Hostel Management System — AI-powered roommate matching, smart room allocation, real-time chat, QR gate passes, and student-centric services for Bannari Amman Institute of Technology." />
+    <meta name="keywords" content="BIT hostel, hostel management, roommate matching, AI hostel, BIT Sathy" />
+    <meta name="author" content="BIT Hostel Team" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="BIT Hostel Portal" />
+    <meta property="og:description" content="Smart MERN-Based Hostel Management with AI Roommate Matching" />
+    <meta property="og:type" content="website" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Theme: prevent flash of unstyled dark mode -->
+    <script>
+      (function () {
+        try {
+          const theme = localStorage.getItem("theme") || "dark";
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+          }
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

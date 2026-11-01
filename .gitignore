@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Environment and sensitive files
+.env
+*.env
+.env.*
+!.env.example
+server/.env
+client/.env
+
+# Production builds
+dist/
+client/dist/
+dist-ssr/
+client/dist-ssr/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# MongoDB cache
+.mongodb-binaries/
+
+# Editor and OS
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
