@@ -18,6 +18,9 @@ const consoleFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} [${level}]: ${stack || message}`;
 });
 
+// ─── Environment Detection ───────────────────────────────────────────────────
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 // ─── Rotating File Transport ──────────────────────────────────────────────────
 const rotatingFileTransport = (filename, level) =>
   new DailyRotateFile({
@@ -29,6 +32,29 @@ const rotatingFileTransport = (filename, level) =>
     level,
   });
 
+// ─── Active Transports ────────────────────────────────────────────────────────
+const activeTransports = [
+  new transports.Console({
+    format: combine(
+      colorize({ all: true }),
+      timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+      consoleFormat
+    ),
+  }),
+];
+
+// In non-serverless environments with writable disk, enable rotating log files
+if (!isServerless) {
+  try {
+    activeTransports.push(
+      rotatingFileTransport("combined", "info"),
+      rotatingFileTransport("error", "error")
+    );
+  } catch (_) {
+    // Graceful fallback to console only
+  }
+}
+
 // ─── Logger Instance ──────────────────────────────────────────────────────────
 const logger = createLogger({
   level: process.env.LOG_LEVEL || "info",
@@ -37,25 +63,11 @@ const logger = createLogger({
     timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     json()
   ),
-  transports: [
-    rotatingFileTransport("combined", "info"),
-    rotatingFileTransport("error", "error"),
-  ],
-  exceptionHandlers: [rotatingFileTransport("exceptions", "error")],
-  rejectionHandlers: [rotatingFileTransport("rejections", "error")],
+  transports: activeTransports,
+  ...(!isServerless && {
+    exceptionHandlers: [rotatingFileTransport("exceptions", "error")],
+    rejectionHandlers: [rotatingFileTransport("rejections", "error")],
+  }),
 });
-
-// Console transport in non-production
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new transports.Console({
-      format: combine(
-        colorize({ all: true }),
-        timestamp({ format: "HH:mm:ss" }),
-        consoleFormat
-      ),
-    })
-  );
-}
 
 module.exports = logger;

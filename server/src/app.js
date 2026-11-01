@@ -48,15 +48,22 @@ const app = express();
 // ─── Database Auto-Connect (Vercel Serverless Lifecycle) ──────────────────────
 const mongoose = require("mongoose");
 const connectDB = require("./config/db");
-let isDbConnected = false;
 
 app.use(async (req, res, next) => {
-  if (!isDbConnected || mongoose.connection.readyState !== 1) {
+  if (mongoose.connection.readyState !== 1) {
     try {
       await connectDB();
-      isDbConnected = true;
+      // Ensure demo accounts exist on first database connection
+      const ensureDemoAccounts = require("./utils/ensureDemoAccounts");
+      ensureDemoAccounts().catch((e) => logger.warn(`Demo accounts check notice: ${e.message}`));
     } catch (err) {
-      logger.error(`Database connection error in request: ${err.message}`);
+      logger.error(`Database connection error: ${err.message}`);
+      if (req.path.startsWith("/api/")) {
+        return res.status(503).json({
+          success: false,
+          message: `Database connection error: ${err.message}. Please verify MONGODB_URI in Vercel settings and allow 0.0.0.0/0 in MongoDB Atlas Network Access.`,
+        });
+      }
     }
   }
   next();

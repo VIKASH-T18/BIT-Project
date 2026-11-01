@@ -12,12 +12,16 @@
 
 const dns = require("dns");
 const dnsPromises = require("dns").promises;
-// Override DNS resolvers so Atlas SRV lookups succeed on most networks
-try {
-  dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
-  dnsPromises.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
-} catch (e) {
-  // fallback to system resolver
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
+// Override DNS resolvers ONLY in local environments (not on Vercel/Lambda where custom DNS is blocked)
+if (!isServerless) {
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+    dnsPromises.setServers(["8.8.8.8", "1.1.1.1", "8.8.4.4"]);
+  } catch (e) {
+    // fallback to system resolver
+  }
 }
 
 const mongoose = require("mongoose");
@@ -94,7 +98,14 @@ const connectDB = async () => {
     return; // All good — Atlas is available
   }
 
-  // Atlas is down — switch to in-memory MongoDB
+  // On Vercel / serverless, in-memory MongoDB is unsupported (read-only filesystem)
+  if (isServerless) {
+    throw new Error(
+      "Could not connect to MongoDB Atlas. Ensure MONGODB_URI is set in Vercel Environment Variables and 0.0.0.0/0 is allowed in MongoDB Atlas Network Access."
+    );
+  }
+
+  // Atlas is down — switch to in-memory MongoDB (local dev only)
   logger.warn("🌐 Atlas unreachable — switching to offline in-memory mode");
   const memSuccess = await startInMemoryMongo();
 
