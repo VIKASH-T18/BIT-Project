@@ -45,6 +45,23 @@ const logger = require("./utils/logger");
 
 const app = express();
 
+// ─── Database Auto-Connect (Vercel Serverless Lifecycle) ──────────────────────
+const mongoose = require("mongoose");
+const connectDB = require("./config/db");
+let isDbConnected = false;
+
+app.use(async (req, res, next) => {
+  if (!isDbConnected || mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+      isDbConnected = true;
+    } catch (err) {
+      logger.error(`Database connection error in request: ${err.message}`);
+    }
+  }
+  next();
+});
+
 // ─── Trust Proxy (for Render/Railway/Vercel) ──────────────────────────────────
 app.set("trust proxy", 1);
 
@@ -73,7 +90,11 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked: ${origin}`));
